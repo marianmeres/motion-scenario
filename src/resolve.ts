@@ -33,7 +33,7 @@ import { wordCount } from "./model.ts";
 export interface ResolvedDirection {
 	/** Position within the beat, 0-based. */
 	index: number;
-	/** `then` or `and`, as parsed. */
+	/** `then`, `and` or `finally`, as parsed. */
 	relation: Relation;
 	/** A cast name. */
 	subject: string;
@@ -69,11 +69,16 @@ export interface ResolvedDirection {
 	raw: string;
 }
 
-/** A `then` line (or a beat's first line) and the `and` lines that join it. */
+/** `opening`: from the beat's start. `closing`: from `finally` on, starting at `closeAt`. */
+export type MomentPhase = "opening" | "closing";
+
+/** A `then` or `finally` line (or a beat's first line) and the `and` lines that join it. */
 export interface ResolvedMoment {
 	/** Position within the beat, 0-based. */
 	index: number;
-	/** Absolute seconds: the previous moment's end, or the beat's start. */
+	/** Whether the moment is part of the beat's opening or of its closing (`finally`). */
+	phase: MomentPhase;
+	/** Absolute seconds: the previous moment's end, the beat's start, or `closeAt`. */
 	start: number;
 	/** Absolute seconds: the latest end of its directions. */
 	end: number;
@@ -98,7 +103,7 @@ export interface ResolvedBeat {
 	index: number;
 	/** Absolute seconds: the previous beat's end, or 0. */
 	start: number;
-	/** Absolute seconds: the later of `readUntil` and `motionEnd`, snapped up to the music grid. */
+	/** Absolute seconds: the last closing moment's end snapped up to the grid, else `closeAt`. */
 	end: number;
 	/** Seconds: `end - start`. */
 	duration: number;
@@ -106,9 +111,14 @@ export interface ResolvedBeat {
 	textReadableAt: number;
 	/** Reading time or hold satisfied. */
 	readUntil: number;
-	/** Every moment complete. */
+	/** Every opening moment complete. */
 	motionEnd: number;
-	/** What decided the beat's length. */
+	/**
+	 * Absolute seconds: the later of `readUntil` and `motionEnd`, snapped up to the music grid.
+	 * The closing moments start here; without any, it equals `end`.
+	 */
+	closeAt: number;
+	/** What decided `closeAt`: reading time, the opening moments, or an explicit `hold`. */
 	boundedBy: BoundedBy;
 	/** The beat's words in this language, when it has any. */
 	text?: BeatText;
@@ -219,11 +229,28 @@ export function resolve(scenario: Scenario, config?: ProjectConfig): ResolveResu
 					readUntil = textReadableAt + readingTime(words, cfg.reading);
 				}
 
-				const moments = resolveMoments(beat.directions, start, scenario, cfg);
-				const motionEnd = moments.length
-					? moments[moments.length - 1].end
+				const cut = beat.directions.findIndex((d) => d.relation === "finally");
+				const opening = resolveMoments(
+					cut < 0 ? beat.directions : beat.directions.slice(0, cut),
+					start,
+					scenario,
+					cfg,
+				);
+				const motionEnd = opening.length
+					? opening[opening.length - 1].end
 					: start;
-				const end = snapUp(Math.max(readUntil, motionEnd), music);
+				const closeAt = snapUp(Math.max(readUntil, motionEnd), music);
+				const closing = cut < 0 ? [] : resolveMoments(
+					beat.directions.slice(cut),
+					closeAt,
+					scenario,
+					cfg,
+					{ phase: "closing", index: cut, moment: opening.length },
+				);
+				const moments = [...opening, ...closing];
+				const end = closing.length
+					? snapUp(closing[closing.length - 1].end, music)
+					: closeAt;
 				const boundedBy: BoundedBy = readUntil >= motionEnd
 					? (beat.hold ? "hold" : "words")
 					: "motion";
@@ -239,6 +266,7 @@ export function resolve(scenario: Scenario, config?: ProjectConfig): ResolveResu
 					textReadableAt: ms(textReadableAt),
 					readUntil: ms(readUntil),
 					motionEnd: ms(motionEnd),
+					closeAt,
 					boundedBy,
 					text,
 					words,
@@ -271,22 +299,39 @@ export function resolve(scenario: Scenario, config?: ProjectConfig): ResolveResu
 	};
 }
 
-/** Group a beat's directions into moments and time each direction. */
+/** Where a run of directions sits in its beat, for `resolveMoments`. */
+export interface MomentRun {
+	/** The run's phase. Default `opening`. */
+	phase?: MomentPhase;
+	/** Position of the run's first direction within the beat. Default 0. */
+	index?: number;
+	/** Position of the run's first moment within the beat. Default 0. */
+	moment?: number;
+}
+
+/**
+ * Group a run of a beat's directions into moments starting at `runStart`, and time each
+ * direction. `resolve` calls it twice per beat: for the opening directions from the beat's
+ * start, and for the closing ones (from `finally` on) from `closeAt`.
+ */
 export function resolveMoments(
 	directions: Direction[],
-	beatStart: number,
+	runStart: number,
 	scenario: Scenario,
 	cfg: ReturnType<typeof resolveConfig>,
+	run: MomentRun = {},
 ): ResolvedMoment[] {
+	const phase = run.phase ?? "opening";
 	const moments: ResolvedMoment[] = [];
 	let cur: ResolvedMoment | null = null;
 	let prevOffset = 0;
 
 	directions.forEach((d, i) => {
-		if (!cur || d.relation === "then") {
-			const start = cur ? cur.end : beatStart;
+		if (!cur || d.relation !== "and") {
+			const start = cur ? cur.end : runStart;
 			cur = {
-				index: moments.length,
+				index: (run.moment ?? 0) + moments.length,
+				phase,
 				start,
 				end: start,
 				duration: 0,
@@ -314,7 +359,7 @@ export function resolveMoments(
 		const start = cur.start + offset;
 		const end = start + duration;
 		cur.directions.push({
-			index: i,
+			index: (run.index ?? 0) + i,
 			relation: d.relation,
 			subject: d.subject,
 			part: d.part,

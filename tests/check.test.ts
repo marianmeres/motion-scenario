@@ -144,6 +144,51 @@ Deno.test("role warnings", () => {
 	assert(c.includes("W_DOUBLE_POP"));
 });
 
+Deno.test("role warnings count opening moments only", () => {
+	const r = run(scenario(`
+		scene a
+		  beat h role hook
+		    en  x
+		    finally card leaves
+		  beat e role end
+		    en  y
+		    hold 3 s
+		    logo appears
+		    logo blinks once
+		    finally logo leaves
+		    then card leaves
+	`));
+	assertEquals(r.errors, []);
+	// a `finally` exit is not the hook's motion …
+	assertEquals(codes(r.warnings), ["W_HOOK_NO_DIRECTION"]);
+	// … and does not make the end card busy
+	const quiet = run(scenario(`
+		scene a
+		  beat h role hook
+		    en  x
+		    card appears
+		    finally card leaves
+		    and logo leaves
+	`));
+	assertEquals(quiet.warnings, []);
+});
+
+Deno.test("just after on a finally line", () => {
+	const r = run(scenario(`
+		scene a
+		  beat b
+		    en  x
+		    card appears
+		    and logo appears
+		    finally card leaves, just after
+	`));
+	assertEquals(codes(r.warnings), ["W_JUST_AFTER_THEN"]);
+	assertEquals(
+		r.warnings[0].message,
+		"`just after` has no effect on a `finally` line (it needs `and`)",
+	);
+});
+
 Deno.test("vocabulary warnings", () => {
 	const r = run(
 		scenario(

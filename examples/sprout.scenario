@@ -34,6 +34,7 @@ scene intro ends clean
 		en  Plants forget nothing. You do.
 		sk  Rastliny nezabúdajú. Vy áno.
 		plants pop, one by one
+		finally plants leave
 		- Three plants in a row; the middle one slightly wilted would sell the line.
 
 scene workflow ends full

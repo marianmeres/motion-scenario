@@ -90,7 +90,7 @@ export interface Beat {
 	role?: string;
 	/** Language → headline (+ optional sub line). */
 	text: Record<string, BeatText>;
-	/** `hold <n> s|beats|bars` — replaces reading time as the beat's duration source. */
+	/** `hold <n> s|beats|bars` — replaces reading time as the beat's word-side bound. */
 	hold?: Hold;
 	/** Stage directions, in file order. */
 	directions: Direction[];
@@ -119,8 +119,11 @@ export interface Hold {
 /** Units a `hold` may be stated in: seconds, or music-grid beats or bars. */
 export type HoldUnit = "s" | "beats" | "bars";
 
-/** `then` starts a new moment after the previous one completes; `and` joins the previous moment. */
-export type Relation = "then" | "and";
+/**
+ * `then` starts a new moment after the previous one completes; `and` joins the previous moment;
+ * `finally` opens the beat's closing moment, after its words have been read (or held).
+ */
+export type Relation = "then" | "and" | "finally";
 
 /** Keywords that introduce a direction argument. */
 export type ArgKeyword = "from" | "to" | "on" | "with";
@@ -153,7 +156,7 @@ export const MODIFIERS: readonly Modifier[] = [
  * `card shows ui.name, ui.note` → `{ verb: "shows", words: ["ui.name", "ui.note"] }`
  */
 export interface Direction {
-	/** `then` (the default when omitted) or `and`. */
+	/** `then` (the default when omitted), `and`, or `finally`. */
 	relation: Relation;
 	/** A cast name. */
 	subject: string;

@@ -74,6 +74,39 @@ Deno.test("direction lines", () => {
 	assertEquals(d[6].raw, "card types ui.x");
 });
 
+Deno.test("finally: the closing moment's relation", () => {
+	const s = parseOk(scenario(`
+		scene a
+		  beat b
+		    en  Hi
+		    card appears
+		    finally card leaves
+		    and logo leaves, just after
+		    then logo appears
+		    finally, a prose note
+		  beat c
+		    hold 1 s
+		    finally logo leaves
+	`));
+	const [b, c] = s.scenes[0].beats;
+	assertEquals(b.directions.map((d) => d.relation), ["then", "finally", "and", "then"]);
+	assertEquals(b.directions[1].subject, "card");
+	assertEquals(b.directions[1].verb, "leaves");
+	assertEquals(b.directions[1].raw, "finally card leaves");
+	assertEquals(b.notes, ["finally, a prose note"]); // not followed by a cast name
+	assertEquals(c.directions[0].relation, "finally"); // allowed before any opening direction
+
+	const twice = parse(scenario(`
+		scene a
+		  beat b
+		    en  Hi
+		    finally card leaves
+		    finally logo leaves
+	`));
+	assertEquals(codes(twice.errors), ["E_FINALLY_TWICE"]);
+	assertEquals(twice.errors[0].line, 12);
+});
+
 Deno.test("parseDirectionTail", () => {
 	assertEquals(parseDirectionTail("pops")!.verb, "pops");
 	assertEquals(parseDirectionTail("steps aside")!.words, ["aside"]);

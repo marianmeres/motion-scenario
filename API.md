@@ -64,9 +64,12 @@ const r = resolve(scenario, config);
 const beat = r.timelines.en.beats[2];
 beat.start;
 beat.end;
-beat.boundedBy; // 5, 8.5, "words"
-beat.moments[0].directions[1].start; // 5.15 (`, just after`)
+beat.boundedBy; // 5.5, 9, "words"
+beat.moments[0].directions[1].start; // 5.65 (`, just after`)
 beat.moments[0].directions[1].motion; // "enters"
+const hook = r.timelines.en.beats[0];
+hook.closeAt; // 2.5 — where `finally plants leave` starts
+hook.moments[1].phase; // "closing"
 ```
 
 ### `words(scenario)`
@@ -160,9 +163,14 @@ reports `E_HOLD_NO_GRID` before this matters).
 
 Seconds per grid beat, or `null` when silent.
 
-### `resolveMoments(directions, beatStart, scenario, cfg)`
+### `resolveMoments(directions, runStart, scenario, cfg, run?)`
 
-Group a beat's directions into moments and time each direction. Used by `resolve`.
+Group a run of a beat's directions into moments starting at `runStart`, and time each direction.
+`resolve` calls it twice per beat: for the opening directions from the beat's start, and for the
+closing ones (from `finally` on) from `closeAt`. `run` (`MomentRun`) places the run in its beat:
+`{ phase?: "opening" | "closing", index?: number, moment?: number }` — the phase stamped on its
+moments, and the beat-level positions of its first direction and first moment (all default to
+`"opening"` / 0).
 
 ### `ms(n)`
 
@@ -287,7 +295,7 @@ interface Hold {
 
 ```ts
 interface Direction {
-	relation: "then" | "and";
+	relation: "then" | "and" | "finally";
 	subject: string;
 	part?: string;
 	verb: string; // first word after the subject
@@ -366,8 +374,9 @@ interface ResolvedBeat {
 	duration: number;
 	textReadableAt: number;
 	readUntil: number;
-	motionEnd: number;
-	boundedBy: "words" | "motion" | "hold";
+	motionEnd: number; // every opening moment complete
+	closeAt: number; // snap(max(readUntil, motionEnd)): closing moments start here; = end without any
+	boundedBy: "words" | "motion" | "hold"; // what decided closeAt
 	text?: BeatText;
 	words: number;
 	hold?: Hold;
@@ -378,6 +387,7 @@ interface ResolvedBeat {
 }
 interface ResolvedMoment {
 	index: number;
+	phase: "opening" | "closing"; // closing: from `finally` on
 	start: number;
 	end: number;
 	duration: number;
@@ -385,7 +395,7 @@ interface ResolvedMoment {
 }
 interface ResolvedDirection {
 	index: number;
-	relation: "then" | "and";
+	relation: "then" | "and" | "finally";
 	subject: string;
 	part?: string;
 	phrase: string; // bound vocabulary phrase, or the bare verb

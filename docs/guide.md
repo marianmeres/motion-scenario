@@ -89,6 +89,19 @@ scene workflow ends full
 - Directions read top to bottom. A line **without** a leading word happens **after** the line
   above finishes. A line starting with **`and`** happens **together** with the line above.
   **`, just after`** on an `and` line means "a hair later". `, one by one` staggers a group.
+- **`finally`** is for what happens as the beat ends, once its words have been read: an exit
+  that belongs to this beat, and above all the exit that empties the stage before a scene that
+  `ends clean`. Lines after it (`and`, `then`) are part of that ending too. An exit that makes
+  room for the next beat's entrance goes at the start of that beat instead.
+
+  ```
+  scene intro ends clean
+  	beat hook role hook
+  		en  Plants forget nothing. You do.
+  		sk  Rastliny nezabúdajú. Vy áno.
+  		plants pop, one by one
+  		finally plants leave
+  ```
 - Keep to **one focal point per beat** and about **seven words per headline**. The check warns
   when you go over.
 - A second, smaller line: `en.sub  …`. Both lines count toward reading time.
@@ -150,7 +163,7 @@ scene <name> [ends full|clean] [transition <kind>]
 	beat <id> [role hook|end|<tag>]
 		<lang>      <headline>
 		<lang>.sub  <second line>
-		[then|and] <name>[.part] <verb…> [from|to|on|with <x>] [, just after] [, one by one|together] [, slowly|quickly|with overshoot|softly]
+		[then|and|finally] <name>[.part] <verb…> [from|to|on|with <x>] [, just after] [, one by one|together] [, slowly|quickly|with overshoot|softly]
 		hold <n> s|beats|bars
 		- a note
 ```

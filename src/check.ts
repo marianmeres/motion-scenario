@@ -249,7 +249,10 @@ export function check(scenario: Scenario, config?: ProjectConfig): CheckResult {
 			);
 		}
 
-		// roles
+		// roles (only opening moments count: a `finally` exit is not the hook's motion, nor
+		// does it make an end card busy)
+		const rb = refTimeline?.beats.find((b) => b.id === beat.id);
+		const opening = rb?.moments.filter((m) => m.phase === "opening") ?? [];
 		const isFirst = sceneIndex === 0 && beatIndex === 0;
 		if (beat.role === "hook") {
 			if (!isFirst) {
@@ -259,10 +262,10 @@ export function check(scenario: Scenario, config?: ProjectConfig): CheckResult {
 					beat.line,
 				);
 			}
-			if (!beat.directions.length) {
+			if (!opening.length) {
 				warn(
 					"W_HOOK_NO_DIRECTION",
-					`hook beat \`${beat.id}\` has no direction (nothing moves in the first second)`,
+					`hook beat \`${beat.id}\` has no opening direction (nothing moves in the first second)`,
 					beat.line,
 				);
 			}
@@ -278,11 +281,10 @@ export function check(scenario: Scenario, config?: ProjectConfig): CheckResult {
 		}
 
 		// directions
-		const rb = refTimeline?.beats.find((b) => b.id === beat.id);
-		if (beat.role === "end" && rb && rb.moments.length > 2) {
+		if (beat.role === "end" && opening.length > 2) {
 			warn(
 				"W_END_BUSY",
-				`end beat \`${beat.id}\` has ${rb.moments.length} moments; an end card holds still after its entrance`,
+				`end beat \`${beat.id}\` has ${opening.length} moments; an end card holds still after its entrance`,
 				beat.line,
 			);
 		}
@@ -329,7 +331,7 @@ export function check(scenario: Scenario, config?: ProjectConfig): CheckResult {
 			if (d.justAfter && d.relation !== "and") {
 				warn(
 					"W_JUST_AFTER_THEN",
-					`\`just after\` has no effect on a \`then\` line (it needs \`and\`)`,
+					`\`just after\` has no effect on a \`${d.relation}\` line (it needs \`and\`)`,
 					d.line,
 				);
 			}

@@ -7,7 +7,7 @@
 import type { Analysis } from "./analyze.ts";
 import type { CheckResult } from "./check.ts";
 import type { Issue } from "./model.ts";
-import type { ResolvedBeat, ResolveResult } from "./resolve.ts";
+import type { ResolvedBeat, ResolvedMoment, ResolveResult } from "./resolve.ts";
 
 const fmt = (n: number, d = 2) => n.toFixed(d);
 
@@ -182,24 +182,37 @@ function formatBoardBeat(
 			}`,
 		);
 	}
-	if (b.moments.length) {
-		out.push("", "Moments:", "");
-		for (const m of b.moments) {
-			out.push(`${m.index + 1}. ${fmt(m.start)} → ${fmt(m.end)} s`);
-			for (const d of m.directions) {
-				const tag = d.motion ? `\`${d.motion}\`` : "**new motion**";
-				const extra = [
-					d.count > 1 ? `×${d.count}` : "",
-					d.offset ? `+${fmt(d.offset)} s` : "",
-					`${fmt(d.duration)} s`,
-				].filter(Boolean).join(", ");
-				out.push(`   - ${d.raw} — ${tag} (${extra})`);
-			}
-		}
+	const opening = b.moments.filter((m) => m.phase === "opening");
+	const closing = b.moments.filter((m) => m.phase === "closing");
+	if (opening.length) out.push("", "Moments:", "", ...formatBoardMoments(opening));
+	if (closing.length) {
+		out.push(
+			"",
+			`Finally, from ${fmt(b.closeAt)} s:`,
+			"",
+			...formatBoardMoments(closing),
+		);
 	}
 	if (b.notes.length) {
 		out.push("", "Notes:", "");
 		for (const n of b.notes) out.push(`- ${n}`);
+	}
+	return out;
+}
+
+function formatBoardMoments(moments: ResolvedMoment[]): string[] {
+	const out: string[] = [];
+	for (const m of moments) {
+		out.push(`${m.index + 1}. ${fmt(m.start)} → ${fmt(m.end)} s`);
+		for (const d of m.directions) {
+			const tag = d.motion ? `\`${d.motion}\`` : "**new motion**";
+			const extra = [
+				d.count > 1 ? `×${d.count}` : "",
+				d.offset ? `+${fmt(d.offset)} s` : "",
+				`${fmt(d.duration)} s`,
+			].filter(Boolean).join(", ");
+			out.push(`   - ${d.raw} — ${tag} (${extra})`);
+		}
 	}
 	return out;
 }

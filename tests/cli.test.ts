@@ -39,7 +39,7 @@ Deno.test("cli check", async () => {
 Deno.test("cli resolve / words / board", async () => {
 	const r = await run("resolve", example, "--config", config);
 	assertEquals(r.code, 0);
-	assertEquals(JSON.parse(r.stdout).timelines.en.total, 14);
+	assertEquals(JSON.parse(r.stdout).timelines.en.total, 14.5);
 	const w = await run("words", example);
 	assertEquals(JSON.parse(w.stdout).sk.ui.plantName, "Monstera");
 	const b = await run("board", example);

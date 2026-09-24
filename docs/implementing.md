@@ -32,6 +32,10 @@ beat remind                                   ← id; role hook/end carries rule
 
 - A line with no leading word, or `then`, starts a new **moment** after the previous one ends.
   `and` joins the current moment. `, just after` offsets within it.
+- `finally` opens the beat's **closing** moments: they start once the words have been read and
+  every earlier moment is done (the beat's `closeAt`), and the beat ends after them. It is how a
+  beat says "and then they leave", typically before a scene that `ends clean`. The headline stays
+  on screen through them; it changes at the next beat, as always.
 - The **subject** is a cast name, optionally `.part`. The **verb phrase** is one of the vocabulary
   (SPEC §7) or a project verb; anything else is a **new motion** for you to build.
 - `from`, `to`, `on`, `with` carry arguments (a side, a pose, a host, a `ui.<key>`).
@@ -65,10 +69,11 @@ deno run -A jsr:@marianmeres/motion-scenario/cli check video.scenario --config p
 Or in code: `const a = analyze(text, config); a.resolved; a.words;` (see [API.md](../API.md)).
 
 `timeline.json` has, per language, every beat with absolute `start`/`end`, when its text is
-readable, what bounded its length, and its moments; every direction with absolute `start`,
-`duration`, the bound `motion` (or `null`), `object`, `args`, `modifiers`, `count`, `group`. The
-numbers are an **estimate** from the preset; your render is the truth. Keep them close by keeping
-the preset honest (§5).
+readable, what bounded its length, where its closing moments start (`closeAt`), and its moments,
+each marked `opening` or `closing`; every direction with absolute `start`, `duration`, the bound
+`motion` (or `null`), `object`, `args`, `modifiers`, `count`, `group`. The numbers are an
+**estimate** from the preset; your render is the truth. Keep them close by keeping the preset
+honest (§5).
 
 ## 4. Build the cast
 
@@ -125,14 +130,16 @@ Pseudo-code of a conforming player (the DOM example is this, in ~200 lines):
 for each beat b (in order):
   at b.start:
     if the beat starts a new scene:
-      previous scene `ends clean`  → the stage is already empty (your directions did it; verify)
+      previous scene `ends clean`  → the stage is already empty (its directions did it, usually a
+                                     `finally` in its last beat; verify)
       previous scene `ends full`   → play this scene's `transition` (push, slide, crossfade, cut)
     set the headline (+ sub) for the current language
       role hook → visible immediately; otherwise animate in over preset.textIn
-  for each moment m, for each direction d:
+  for each moment m, for each direction d:        (opening moments, then from b.closeAt the
+                                                   closing ones; d.start already says which)
     at d.start: run motion(d.motion ?? d.phrase, subject(d), args, modifiers) for d.duration
       group / several objects with d.group == "oneByOne" → member i starts i × preset.stagger later
-  role end → hold still until b.end (b.holdSeconds)
+  role end → hold still until b.closeAt (b.holdSeconds), then play its closing moments, if any
 the video ends at timeline.total
 ```
 

@@ -67,19 +67,19 @@ deno run -A jsr:@marianmeres/motion-scenario/cli check my-video.scenario
    my-video.scenario: 0 error(s), 2 warning(s)
 
    warnings:
-     L43   W_NEW_MOTION         new motion `types ui.plantName` on `card` (FormCard)
-     L44   W_NEW_MOTION         new motion `types ui.waterEvery` on `card` (FormCard)
+     L45   W_NEW_MOTION         new motion `types ui.plantName` on `card` (FormCard)
+     L46   W_NEW_MOTION         new motion `types ui.waterEvery` on `card` (FormCard)
 
    new motions (implement these, then add them to the registry):
-     types ui.plantName (FormCard)            L43
-     types ui.waterEvery (FormCard)           L44
+     types ui.plantName (FormCard)            L45
+     types ui.waterEvery (FormCard)           L46
 
-   timeline en — 14.00 s
+   timeline en — 14.50 s
       #  beat       scene       start    dur  by     mom  headline
-      0  hook       intro        0.00   2.50  words    1  Plants forget nothing. You do.
-      1  add        workflow     2.50   2.50  words    3  Add a plant.
+      0  hook       intro        0.00   3.00  words    2  Plants forget nothing. You do.
+      1  add        workflow     3.00   2.50  words    3  Add a plant.
       ...
-   running time: en 14.00 s, sk 13.00 s
+   running time: en 14.50 s, sk 13.50 s
    ```
 
 3. Give the project a config (component types, project verbs, style preset, format budgets —

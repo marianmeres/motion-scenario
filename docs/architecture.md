@@ -40,7 +40,8 @@ config ──────▶│ config   │──cfg──────▶ │ c
 2. `check(scenario, config)` walks cast, ui, scenes, beats, directions. Per direction it calls
    `bind` (vocabulary) and `uiRefs`. It calls `resolve` for moment counts and format budgets.
 3. `resolve(scenario, config)` computes, per language, each beat's `start`/`end` from reading
-   time, holds, moments and the music grid. Per direction: bound phrase, `count`, `offset`,
+   time, holds, moments and the music grid: opening moments from the beat's start, closing
+   (`finally`) moments from `closeAt`. Per direction: bound phrase, `count`, `offset`,
    `duration`, absolute `start`.
 4. `words(scenario)` flattens text per language.
 5. `analyze` chains 1–4 and applies "errors stop every tool". `report.ts` renders.

@@ -588,7 +588,8 @@ function parseBeatLine(
 	}
 
 	// direction
-	const rel: Relation | null = first === "then" || first === "and" ? first : null;
+	const rel: Relation | null =
+		first === "then" || first === "and" || first === "finally" ? first : null;
 	const subjTok = rel ? tokens[1] : tokens[0];
 	const dot = subjTok?.indexOf(".") ?? -1;
 	const subject = dot >= 0 ? subjTok.slice(0, dot) : subjTok;
@@ -598,6 +599,14 @@ function parseBeatLine(
 		const d = parseDirectionTail(after);
 		if (!d) {
 			err(`direction on \`${subject}\` has no verb`, r.no, "E_DIRECTION");
+			return;
+		}
+		if (rel === "finally" && beat.directions.some((x) => x.relation === "finally")) {
+			err(
+				`second \`finally\` in beat \`${beat.id}\` (continue the closing moments with \`then\` or \`and\`)`,
+				r.no,
+				"E_FINALLY_TWICE",
+			);
 			return;
 		}
 		beat.directions.push({

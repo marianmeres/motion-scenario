@@ -54,7 +54,7 @@ model.
 ## Testing
 
 - Every SPEC §6 rule has at least one asserting test; every timing formula in §5 has a numeric
-  case; the example's numbers (`14.00 s` en, `13.00 s` sk) are asserted end to end.
+  case; the example's numbers (`14.50 s` en, `13.50 s` sk) are asserted end to end.
 - CLI tests spawn `deno run -A src/cli.ts` and assert exit codes and parseable JSON.
 - Compare timing with values passed through `ms()`.
 

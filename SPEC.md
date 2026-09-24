@@ -179,7 +179,7 @@ scene outro transition push
 | Part                   | Meaning                                                                                                                                            |
 | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `<name>`               | Unique (`E_DUPLICATE_SCENE`).                                                                                                                      |
-| `ends clean` (default) | The scene's own directions leave an empty background.                                                                                              |
+| `ends clean` (default) | The scene's own directions leave an empty background: typically a `finally` exit in its last beat (§2.8).                                          |
 | `ends full`            | The scene ends with things on stage; the next scene must declare a `transition` that pushes them away (`E_CLEAN_PLATE`). The last scene is exempt. |
 | `transition <kind>`    | How this scene enters: `cut`, `push`, `slide`, `crossfade`, or a project-defined kind (unknown kinds are `W_NEW_TRANSITION`).                      |
 
@@ -201,7 +201,7 @@ Each line under a beat (level 2) is classified **in this order**; the first matc
 | 1 | starts with `-`                                                                                                                     | **Note.** The dash and following whitespace are stripped.                                                                             |
 | 2 | starts with `hold`                                                                                                                  | **Hold**: `hold <n> s` \| `<n> beats` \| `<n> bars`. Anything else is `E_HOLD`. One per beat.                                         |
 | 3 | first token is a declared language, or `<lang>.sub`                                                                                 | **Text**: the headline, or the optional second line. One of each per language (`E_DUPLICATE_TEXT`); an empty value is `E_EMPTY_TEXT`. |
-| 4 | first token (after an optional `then` / `and`) is a cast name, optionally `.part`                                                   | **Direction** (§2.8).                                                                                                                 |
+| 4 | first token (after an optional `then` / `and` / `finally`) is a cast name, optionally `.part`                                       | **Direction** (§2.8).                                                                                                                 |
 | 5 | first token looks like a language code (`xx`, `xxx`, `xx-YY`, optionally `.sub`) **and** is followed by two or more spaces or a tab | `E_UNDECLARED_LANGUAGE`.                                                                                                              |
 | 6 | anything else                                                                                                                       | **Note**, kept verbatim.                                                                                                              |
 
@@ -215,7 +215,7 @@ or none (`E_SUB_MISMATCH`).
 ### 2.8 Directions
 
 ```
-[then|and] <subject>[.<part>] <verb> [words…] [from|to|on|with <value>]… [, <tail>]…
+[then|and|finally] <subject>[.<part>] <verb> [words…] [from|to|on|with <value>]… [, <tail>]…
 ```
 
 ```
@@ -226,20 +226,28 @@ card shows ui.plantName, ui.waterEvery
 logo takes the stage
 sprout grows, slowly
 card.button pops with overshoot
+finally plants leave
 ```
 
 | Element                                              | Meaning                                                                                                                                                                                                                                              |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `then` (default, may be omitted)                     | Starts a new **moment** after the previous moment completes.                                                                                                                                                                                         |
 | `and`                                                | Joins the previous moment: starts together with it.                                                                                                                                                                                                  |
+| `finally`                                            | Opens the beat's **closing moment**: it starts once the beat's words have been read (or its hold is over) and every earlier moment has completed, and the beat ends after it (§5.3–5.4). One per beat (`E_FINALLY_TWICE`).                           |
 | `<subject>`                                          | A cast name. `<subject>.<part>` addresses an anchor the component type knows (`card.button`).                                                                                                                                                        |
 | `<verb> [words…]`                                    | The verb phrase: the first word plus any bare words before a keyword or comma. Which of the bare words belong to the verb is decided by the vocabulary (§7): `takes the stage` is one phrase; in `types ui.plantName`, `ui.plantName` is the object. |
 | `from`, `to`, `on`, `with <value>`                   | Keyword arguments. A value runs to the next keyword or comma. A leading article (`the`, `a`, `an`) is dropped: `from the right` → `right`.                                                                                                           |
-| `, just after`                                       | With `and`: start one `justAfter` offset after the line above (chains accumulate). On a `then` line it has no effect (`W_JUST_AFTER_THEN`).                                                                                                          |
+| `, just after`                                       | With `and`: start one `justAfter` offset after the line above (chains accumulate). On a `then` or `finally` line it has no effect (`W_JUST_AFTER_THEN`).                                                                                             |
 | `, one by one`                                       | On a group or several objects: stagger the members.                                                                                                                                                                                                  |
 | `, together`                                         | The members start at once. This is the default, except for verbs the vocabulary marks as staggered (`shows`).                                                                                                                                        |
 | `, slowly` `, quickly` `, with overshoot` `, softly` | The four modifiers. `slowly` and `quickly` scale the duration by the preset's factors; the other two are passed to the renderer. A modifier may also be written without a comma.                                                                     |
 | any other `, <segment>`                              | Continues the previous list: a further keyword value if a keyword was open, otherwise a further object (`shows ui.a, ui.b`).                                                                                                                         |
+
+`finally` is for what happens as the beat ends: an exit that belongs to this beat's story, and
+above all the exit that empties the stage before a scene that `ends clean`. The lines after it
+belong to the beat's closing: `and` joins the closing moment, `then` opens a further closing
+moment after it. A beat may start with `finally` (a beat that only exits something). An exit that
+makes room for the next beat's entrance belongs at the start of that beat instead.
 
 Verbs may be written in the plural for plural subjects: `plants pop` binds to `pops`. The
 resolver reports the vocabulary form.
@@ -285,6 +293,7 @@ scene intro ends clean
 		en  Plants forget nothing. You do.
 		sk  Rastliny nezabúdajú. Vy áno.
 		plants pop, one by one
+		finally plants leave
 		- Three plants in a row; the middle one slightly wilted would sell the line.
 
 scene workflow ends full
@@ -338,8 +347,8 @@ Scenario
   ui{}       key → language → text
   scenes[]   name, ends(full | clean), transition?, beats[]
     beats[]  id, role?, text{language → headline, sub?}, hold?, directions[], notes[]
-      directions[]  relation(then | and), subject, part?, verb, words[], args{from,to,on,with},
-                    justAfter, group?(oneByOne | together), modifiers[]
+      directions[]  relation(then | and | finally), subject, part?, verb, words[],
+                    args{from,to,on,with}, justAfter, group?(oneByOne | together), modifiers[]
 ```
 
 Every element records its source `line`. Directions keep the line as written in `raw`.
@@ -392,11 +401,14 @@ A `hold` replaces the reading time as the beat's word-side bound:
 
 ### 5.3 Moments
 
-The directions of a beat form moments in file order:
+The directions of a beat form moments in file order. The moments before a `finally` line are
+the beat's **opening** moments; from it on, they are its **closing** moments:
 
 - A `then` line (or a line with no relation word) opens a new moment that starts when the
   previous moment ends. The first direction always opens the first moment.
 - An `and` line joins the current moment.
+- A `finally` line opens the first closing moment, which starts at the beat's `closeAt` (§5.4),
+  not when the previous moment ends.
 - Each direction has an `offset` inside its moment: 0, or with `, just after`, the offset of the
   line above plus the preset's `justAfter`.
 - Each direction has a `duration`:
@@ -413,17 +425,26 @@ The directions of a beat form moments in file order:
   `one by one` is implied for a staggered verb (`shows`) with more than one object, unless
   `, together` is written.
 - A moment ends at the largest `offset + duration` of its directions.
-- The beat's text change belongs to the first moment; it adds no time beyond `textIn`.
+- The beat's text changes at the beat's start, alongside the first opening moment; it adds no time
+  beyond `textIn`. It stays on screen through the closing moments and is replaced at the next
+  beat, as always.
 
 ### 5.4 Beat duration
 
 ```
 textReadableAt = start + (hook ? 0 : text ? preset.textIn : 0)
 readUntil      = hold ? start + holdSeconds : textReadableAt + readingTime(words)
-motionEnd      = end of the last moment (start if there are no directions)
-end            = snap(max(readUntil, motionEnd))
+motionEnd      = end of the last opening moment (start if there is none)
+closeAt        = snap(max(readUntil, motionEnd))
+end            = closing moments ? snap(end of the last closing moment) : closeAt
 boundedBy      = readUntil ≥ motionEnd ? (hold ? "hold" : "words") : "motion"
 ```
+
+`closeAt` is where the closing moments start: once the words are read and the opening moments
+are done, on a grid point. Without a `finally` it is the beat's `end`, so a beat without closing
+moments lasts exactly `snap(max(readUntil, motionEnd))`. With them, the second snap puts the next
+beat on the grid too. `boundedBy` says what decided `closeAt`; closing moments always add their
+length on top of it.
 
 Beats follow each other without gaps; the video's running time is the last beat's `end`.
 All results are rounded to milliseconds.
@@ -451,18 +472,33 @@ disagree by design, only by drift, which the report makes visible.
 
 ### 5.6 Worked example
 
-The `remind` beat above, in `en`, with the defaults, 120 bpm (0.5 s grid), starting at 5.00 s:
+Two beats of the example above, in `en`, with the defaults, 120 bpm (0.5 s grid).
 
-|                |                                                                                       |
-| -------------- | ------------------------------------------------------------------------------------- |
-| words          | 7 → reading time `max(1.8, 0.8 + 7 × 0.3)` = 2.9 s                                    |
-| textReadableAt | 5.00 + 0.4 = 5.40                                                                     |
-| readUntil      | 5.40 + 2.9 = 8.30                                                                     |
-| moment 1       | `card steps aside` (0.5 s) **and** `phone enters` (+0.15 offset, 0.5 s) → 5.00 → 5.65 |
-| moment 2       | `reminder pops` (0.5 s) → 5.65 → 6.15                                                 |
-| moment 3       | `reminder blinks once` (0.3 s) → 6.15 → 6.45                                          |
-| motionEnd      | 6.45                                                                                  |
-| end            | snap(max(8.30, 6.45)) = snap(8.30) = **8.50**, bounded by words                       |
+The `hook` beat, starting at 0.00 s:
+
+|                |                                                                     |
+| -------------- | ------------------------------------------------------------------- |
+| words          | 5 → reading time `max(1.8, 0.8 + 5 × 0.3)` = 2.3 s                  |
+| textReadableAt | 0.00 (a hook's text is on screen at frame 0)                        |
+| readUntil      | 0.00 + 2.3 = 2.30                                                   |
+| moment 1       | `plants pop, one by one` (0.5 s + 2 × 0.12 s stagger) → 0.00 → 0.74 |
+| motionEnd      | 0.74                                                                |
+| closeAt        | snap(max(2.30, 0.74)) = snap(2.30) = 2.50, bounded by words         |
+| moment 2       | `finally plants leave` (0.4 s) → 2.50 → 2.90                        |
+| end            | snap(2.90) = **3.00**                                               |
+
+The `remind` beat, starting at 5.50 s:
+
+|                 |                                                                                       |
+| --------------- | ------------------------------------------------------------------------------------- |
+| words           | 7 → reading time `max(1.8, 0.8 + 7 × 0.3)` = 2.9 s                                    |
+| textReadableAt  | 5.50 + 0.4 = 5.90                                                                     |
+| readUntil       | 5.90 + 2.9 = 8.80                                                                     |
+| moment 1        | `card steps aside` (0.5 s) **and** `phone enters` (+0.15 offset, 0.5 s) → 5.50 → 6.15 |
+| moment 2        | `reminder pops` (0.5 s) → 6.15 → 6.65                                                 |
+| moment 3        | `reminder blinks once` (0.3 s) → 6.65 → 6.95                                          |
+| motionEnd       | 6.95                                                                                  |
+| closeAt and end | snap(max(8.80, 6.95)) = snap(8.80) = **9.00**, bounded by words; no `finally`         |
 
 ---
 
@@ -487,6 +523,7 @@ printed and the tools continue (`check --strict` turns them into a failing exit 
 | `E_TEXT_MISSING` `E_SUB_MISMATCH` `E_EMPTY_TEXT` `E_EMPTY_BEAT`                                                  | Beat text rules (§2.7)                                                     |
 | `E_HOLD` `E_HOLD_NO_GRID`                                                                                        | A hold without a valid unit; `beats`/`bars` without music                  |
 | `E_DIRECTION`                                                                                                    | A direction with no verb                                                   |
+| `E_FINALLY_TWICE`                                                                                                | A second `finally` in one beat                                             |
 | `E_CLEAN_PLATE`                                                                                                  | A scene that ends full not followed by a scene with a transition           |
 | `E_HOOK_POSITION`                                                                                                | `role hook` not on the first beat of the first scene                       |
 
@@ -502,10 +539,10 @@ printed and the tools continue (`check --strict` turns them into a failing exit 
 | `W_HEADLINE_LINES`                 | A headline estimated over `maxLines` (default 2) at a format's `charsPerLine`            |
 | `W_BLACKLIST`                      | A blacklisted word in text, per language (whole words, case-insensitive)                 |
 | `W_BUDGET`                         | Running time outside a format's `budget`                                                 |
-| `W_HOOK_NO_DIRECTION`              | A hook beat with nothing moving                                                          |
-| `W_END_NO_HOLD` `W_END_BUSY`       | An end beat without a hold; with more than two moments                                   |
+| `W_HOOK_NO_DIRECTION`              | A hook beat with nothing moving before its `finally` (no opening moment)                 |
+| `W_END_NO_HOLD` `W_END_BUSY`       | An end beat without a hold; with more than two opening moments                           |
 | `W_DOUBLE_POP`                     | Two `pops` in one moment (one focal point per frame)                                     |
-| `W_JUST_AFTER_THEN`                | `, just after` on a `then` line                                                          |
+| `W_JUST_AFTER_THEN`                | `, just after` on a `then` or `finally` line                                             |
 | `W_UNUSED_CAST` `W_UNUSED_UI`      | Declared but never used                                                                  |
 | `W_EMPTY_SCENE`                    | A scene without beats                                                                    |
 
@@ -605,22 +642,22 @@ is the object.
 
 ## 9. Roles
 
-| Role           | Defaults                                                      | Rules                                                                                                           |
-| -------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `hook`         | The text is _set_ at frame 0, not animated in (`textIn` = 0). | Only on the first beat of the first scene (`E_HOOK_POSITION`). Should have a direction (`W_HOOK_NO_DIRECTION`). |
-| `end`          | —                                                             | Should state a `hold` (`W_END_NO_HOLD`). Should have at most one moment after its entrance (`W_END_BUSY`).      |
-| any other word | none                                                          | none; documentation for the reviewer                                                                            |
+| Role           | Defaults                                                      | Rules                                                                                                                                    |
+| -------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `hook`         | The text is _set_ at frame 0, not animated in (`textIn` = 0). | Only on the first beat of the first scene (`E_HOOK_POSITION`). Should have an opening direction (`W_HOOK_NO_DIRECTION`).                 |
+| `end`          | —                                                             | Should state a `hold` (`W_END_NO_HOLD`). Should have at most one moment after its entrance (`W_END_BUSY`); closing moments do not count. |
+| any other word | none                                                          | none; documentation for the reviewer                                                                                                     |
 
 ---
 
 ## 10. Outputs
 
-| Tool      | Produces                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `check`   | Errors, warnings, new motions and components, and the timing table per language. `--json` gives the full analysis.                                                                                                                                                                                                                                                                                                                                             |
-| `resolve` | The resolved timeline as JSON: for every language, every beat with `start`, `end`, `duration`, `textReadableAt`, `readUntil`, `motionEnd`, `boundedBy`, its text, hold, moments and directions with absolute `start`, `offset`, `duration`, `end`, the bound `motion` (or `null`), `object`, `args`, `modifiers`, `count`, `group`, `line`, `raw`. Plus the preset, reading constants, music and grid. **This is the document an implementer schedules from.** |
-| `words`   | `{ [language]: { beats: { [id]: { headline, sub? } }, ui: { [key]: text } } }`.                                                                                                                                                                                                                                                                                                                                                                                |
-| `board`   | A markdown board: title card (the `video` block), cast, ui strings, then one section per beat with its words in every language, its timing, its moments and its notes. The review artifact.                                                                                                                                                                                                                                                                    |
+| Tool      | Produces                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `check`   | Errors, warnings, new motions and components, and the timing table per language. `--json` gives the full analysis.                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `resolve` | The resolved timeline as JSON: for every language, every beat with `start`, `end`, `duration`, `textReadableAt`, `readUntil`, `motionEnd`, `closeAt`, `boundedBy`, its text, hold, moments (each with its `phase`: `opening` or `closing`) and directions with absolute `start`, `offset`, `duration`, `end`, the bound `motion` (or `null`), `object`, `args`, `modifiers`, `count`, `group`, `line`, `raw`. Plus the preset, reading constants, music and grid. **This is the document an implementer schedules from.** |
+| `words`   | `{ [language]: { beats: { [id]: { headline, sub? } }, ui: { [key]: text } } }`.                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `board`   | A markdown board: title card (the `video` block), cast, ui strings, then one section per beat with its words in every language, its timing, its moments (the closing ones under **Finally**) and its notes. The review artifact.                                                                                                                                                                                                                                                                                          |
 
 Time values are seconds, rounded to milliseconds.
 
