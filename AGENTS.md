@@ -73,7 +73,9 @@ text ──parse──▶ Scenario ──check──▶ CheckResult ──┐
    errors and zero warnings with its config, and exactly two `W_NEW_MOTION` without it.
 7. **No consumer-specific references** in docs, examples, comments. The example is the fictional
    Sprout app.
-8. **Formatting**: tabs, line width 90 (`deno fmt`); `.scenario` files use two spaces.
+8. **Formatting**: tabs, line width 90 (`deno fmt`). `.scenario` files and scenario snippets in
+   docs indent with tabs and align columns with spaces (SPEC §1.1–1.2); spaces-indented input
+   stays supported and is what the inline test scenarios use.
 9. **Timing numbers are rounded with `ms()`** at every boundary; tests compare rounded values.
 
 ## Before Making Changes

@@ -14,13 +14,13 @@ implements it in whatever renders pixels; the tools keep both honest.
 
 ```
 scene workflow ends full
-  beat remind
-    en  Get a nudge when it is thirsty.
-    sk  Dostanete štuchanec, keď je smädná.
-    card steps aside
-    and phone enters from the right, just after
-    reminder pops
-    reminder blinks once
+	beat remind
+		en  Get a nudge when it is thirsty.
+		sk  Dostanete štuchanec, keď je smädná.
+		card steps aside
+		and phone enters from the right, just after
+		reminder pops
+		reminder blinks once
 ```
 
 ## Why

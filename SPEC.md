@@ -58,16 +58,20 @@ Principles the format is built on:
 
 ### 1.1 Indentation
 
-- Indent with tabs **or** spaces, one kind per file. The first indented line sets the unit (one
-  tab, or the exact run of spaces it uses). Every later indented line must use the same character
-  and a whole multiple of that unit. Anything else is `E_INDENT`.
+- Indent with **tabs**, one tab per level. This is the preferred form; every example in this
+  package uses it.
+- Spaces are also accepted, and a conforming reader must accept them. A file uses one kind only.
+- The first indented line sets the unit (one tab, or the exact run of spaces it uses). Every
+  later indented line must use the same character and a whole multiple of that unit. Anything
+  else is `E_INDENT`.
 - Block headers are at level 0. Their lines are at level 1. Beat lines are at level 2. No deeper.
 
 ### 1.2 Two-column lines
 
 Several line kinds are `<key>  <value>`: the key is the first run of non-blank characters, the
 value is everything after the first run of whitespace, trimmed. One space is enough to separate
-them; two or more is the convention, because it lines the values up.
+them; two or more is the convention, because it lines the values up. Tabs indent, spaces align:
+a tab between key and value is accepted, but the values then line up only at one tab width.
 
 ---
 
@@ -102,12 +106,12 @@ missing `video`, `cast` or `scene` is `E_MISSING_BLOCK`.
 
 ```
 video sprout-how-it-works
-  formats    wide, reel
-  languages  en, sk
-  music      120 bpm
-  style      calm
-  status     proposed
-  audience   people who keep forgetting to water their plants
+	formats    wide, reel
+	languages  en, sk
+	music      120 bpm
+	style      calm
+	status     proposed
+	audience   people who keep forgetting to water their plants
 ```
 
 | Key           | Required | Value                                                                                                                                                    |
@@ -127,14 +131,14 @@ Everything that can be the subject of a direction is declared here, once.
 
 ```
 cast
-  card      FormCard
-  plant     Plant
-  plants    3x plant
-  phone     Phone
-  reminder  Notification on phone  ui.reminder
-  sprout    Plant on phone
-  logo      Logo
-  wilted    new: a plant that visibly droops
+	card      FormCard
+	plant     Plant
+	plants    3x plant
+	phone     Phone
+	reminder  Notification on phone  ui.reminder
+	sprout    Plant on phone
+	logo      Logo
+	wilted    new: a plant that visibly droops
 ```
 
 | Form                               | Meaning                                                                                                                                                             |
@@ -157,8 +161,8 @@ notification). Not timed, but translated, so they belong to the scenario. One bl
 
 ```
 ui waterEvery
-  en  Water every 7 days
-  sk  Polievať každých 7 dní
+	en  Water every 7 days
+	sk  Polievať každých 7 dní
 ```
 
 Every declared language must be present (`E_UI_TEXT_MISSING`); an undeclared one is
@@ -249,74 +253,74 @@ A direction line with no verb is `E_DIRECTION`.
 motion-scenario 1
 
 video sprout-how-it-works
-  formats    wide, reel
-  languages  en, sk
-  music      120 bpm
-  style      calm
-  status     proposed
-  audience   people who keep forgetting to water their plants
-  remember   add a plant once, get nudged at the right time
+	formats    wide, reel
+	languages  en, sk
+	music      120 bpm
+	style      calm
+	status     proposed
+	audience   people who keep forgetting to water their plants
+	remember   add a plant once, get nudged at the right time
 
 cast
-  card      FormCard
-  plant     Plant
-  plants    3x plant
-  phone     Phone
-  reminder  Notification on phone  ui.reminder
-  sprout    Plant on phone
-  logo      Logo
+	card      FormCard
+	plant     Plant
+	plants    3x plant
+	phone     Phone
+	reminder  Notification on phone  ui.reminder
+	sprout    Plant on phone
+	logo      Logo
 
 ui plantName
-  en  Monstera
-  sk  Monstera
+	en  Monstera
+	sk  Monstera
 ui waterEvery
-  en  Water every 7 days
-  sk  Polievať každých 7 dní
+	en  Water every 7 days
+	sk  Polievať každých 7 dní
 ui reminder
-  en  Time to water Monstera
-  sk  Čas poliať monsteru
+	en  Time to water Monstera
+	sk  Čas poliať monsteru
 
 scene intro ends clean
-  beat hook role hook
-    en  Plants forget nothing. You do.
-    sk  Rastliny nezabúdajú. Vy áno.
-    plants pop, one by one
-    - Three plants in a row; the middle one slightly wilted would sell the line.
+	beat hook role hook
+		en  Plants forget nothing. You do.
+		sk  Rastliny nezabúdajú. Vy áno.
+		plants pop, one by one
+		- Three plants in a row; the middle one slightly wilted would sell the line.
 
 scene workflow ends full
-  beat add
-    en  Add a plant.
-    sk  Pridajte rastlinu.
-    card appears
-    card types ui.plantName
-    card types ui.waterEvery
+	beat add
+		en  Add a plant.
+		sk  Pridajte rastlinu.
+		card appears
+		card types ui.plantName
+		card types ui.waterEvery
 
-  beat remind
-    en  Get a nudge when it is thirsty.
-    sk  Dostanete štuchanec, keď je smädná.
-    card steps aside
-    and phone enters from the right, just after
-    reminder pops
-    reminder blinks once
+	beat remind
+		en  Get a nudge when it is thirsty.
+		sk  Dostanete štuchanec, keď je smädná.
+		card steps aside
+		and phone enters from the right, just after
+		reminder pops
+		reminder blinks once
 
-  beat water
-    en  Water it. Done.
-    sk  Polejte ju. Hotovo.
-    card leaves
-    and reminder leaves
-    and phone takes the stage
-    sprout appears
-    sprout grows, slowly
+	beat water
+		en  Water it. Done.
+		sk  Polejte ju. Hotovo.
+		card leaves
+		and reminder leaves
+		and phone takes the stage
+		sprout appears
+		sprout grows, slowly
 
 scene outro transition push
-  beat end role end
-    en      Sprout
-    en.sub  Plant care that remembers for you.
-    sk      Sprout
-    sk.sub  Starostlivosť o rastliny, ktorá si pamätá za vás.
-    logo appears
-    logo blinks once
-    hold 3 s
+	beat end role end
+		en      Sprout
+		en.sub  Plant care that remembers for you.
+		sk      Sprout
+		sk.sub  Starostlivosť o rastliny, ktorá si pamätá za vás.
+		logo appears
+		logo blinks once
+		hold 3 s
 ```
 
 ---

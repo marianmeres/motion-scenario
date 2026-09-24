@@ -18,14 +18,16 @@ the words and the music, and checks that nothing is missing.
 motion-scenario 1
 
 video sprout-how-it-works
-  formats    wide, reel
-  languages  en, sk
-  music      120 bpm
-  style      calm
-  status     proposed
-  audience   people who keep forgetting to water their plants
+	formats    wide, reel
+	languages  en, sk
+	music      120 bpm
+	style      calm
+	status     proposed
+	audience   people who keep forgetting to water their plants
 ```
 
+- Indent with tabs, one per level. Spaces work too, as long as the whole file uses the same
+  kind.
 - `languages`: the first one is the **reference**. Write that one first; the check tells you
   what the others are missing.
 - `music`: the beats per minute of the track, or `silent`. Beat lengths snap to the music.
@@ -38,14 +40,14 @@ Everything that will move gets a name, once.
 
 ```
 cast
-  card      FormCard
-  plant     Plant
-  plants    3x plant
-  phone     Phone
-  reminder  Notification on phone  ui.reminder
-  sprout    Plant on phone
-  logo      Logo
-  wilted    new: a plant that visibly droops
+	card      FormCard
+	plant     Plant
+	plants    3x plant
+	phone     Phone
+	reminder  Notification on phone  ui.reminder
+	sprout    Plant on phone
+	logo      Logo
+	wilted    new: a plant that visibly droops
 ```
 
 - The second column is the component the project already has. Ask the implementer for the list,
@@ -61,8 +63,8 @@ too, so they live here, not in code:
 
 ```
 ui waterEvery
-  en  Water every 7 days
-  sk  Polievať každých 7 dní
+	en  Water every 7 days
+	sk  Polievať každých 7 dní
 ```
 
 Refer to them in directions as `ui.waterEvery`.
@@ -71,13 +73,13 @@ Refer to them in directions as `ui.waterEvery`.
 
 ```
 scene workflow ends full
-  beat remind
-    en  Get a nudge when it is thirsty.
-    sk  Dostanete štuchanec, keď je smädná.
-    card steps aside
-    and phone enters from the right, just after
-    reminder pops
-    reminder blinks once
+	beat remind
+		en  Get a nudge when it is thirsty.
+		sk  Dostanete štuchanec, keď je smädná.
+		card steps aside
+		and phone enters from the right, just after
+		reminder pops
+		reminder blinks once
 ```
 
 - A **scene** is a group of beats on one background. Say how it ends: `ends clean` (the stage is
@@ -145,10 +147,10 @@ video <slug>                              # one; keys: formats, languages, music
 cast                                      # one; <name>  <Type> [on <host>] [args] | <n>x <member> | new: <text>
 ui <key>                                  # any; <lang>  <text>
 scene <name> [ends full|clean] [transition <kind>]
-  beat <id> [role hook|end|<tag>]
-    <lang>      <headline>
-    <lang>.sub  <second line>
-    [then|and] <name>[.part] <verb…> [from|to|on|with <x>] [, just after] [, one by one|together] [, slowly|quickly|with overshoot|softly]
-    hold <n> s|beats|bars
-    - a note
+	beat <id> [role hook|end|<tag>]
+		<lang>      <headline>
+		<lang>.sub  <second line>
+		[then|and] <name>[.part] <verb…> [from|to|on|with <x>] [, just after] [, one by one|together] [, slowly|quickly|with overshoot|softly]
+		hold <n> s|beats|bars
+		- a note
 ```
