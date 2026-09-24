@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>motion-scenario — DOM example</title>
+		<link rel="stylesheet" href="./style.css" />
+	</head>
+	<body>
+		<main id="app" data-state="loading">
+			<header>
+				<h1>@marianmeres/motion-scenario · DOM example</h1>
+				<p>
+					<code>sprout.scenario</code> is parsed, checked and resolved in the browser,
+					then played with plain CSS transitions. The player knows nothing about the
+					video: it maps each resolved direction's verb to a CSS class and fires it at
+					the resolved second. Any other renderer would consume the same data.
+				</p>
+				<div class="controls">
+					<button data-on="click:play" data-ref="play">▶ play</button>
+					<span class="langs" data-ref="langs"></span>
+					<span class="clock" data-ref="clock">0.00 s</span>
+				</div>
+			</header>
+
+			<!--
+				THE STAGE. One element per cast member, addressed by data-cast="<name>".
+				A group (`plants  3x plant`) is three elements named after its member.
+				A hosted member (`reminder  Notification on phone`) sits inside its host.
+				Poses and motions are CSS (style.css); nothing here is positioned by JS.
+			-->
+			<section class="stage" data-ref="stage">
+				<div class="text" data-ref="text">
+					<h2 data-ref="headline"></h2>
+					<p data-ref="sub"></p>
+				</div>
+
+				<div class="cast card" data-cast="card">
+					<div class="field" data-field></div>
+					<div class="field" data-field></div>
+				</div>
+
+				<div class="cast plant" data-cast="plant" data-i="0">🪴</div>
+				<div class="cast plant" data-cast="plant" data-i="1">🪴</div>
+				<div class="cast plant" data-cast="plant" data-i="2">🪴</div>
+
+				<div class="cast phone" data-cast="phone">
+					<div class="screen">
+						<div class="cast reminder" data-cast="reminder"></div>
+						<div class="cast sprout" data-cast="sprout">🌱</div>
+					</div>
+				</div>
+
+				<div class="cast logo" data-cast="logo">Sprout</div>
+			</section>
+
+			<aside class="inspector">
+				<p class="meta">
+					Resolved timeline · <span data-ref="total"></span>. The current beat is
+					marked while playing.
+				</p>
+				<ol data-ref="beats"></ol>
+				<pre data-ref="report"></pre>
+			</aside>
+		</main>
+		<script type="module" src="./dist/bundle.js"></script>
+	</body>
+</html>

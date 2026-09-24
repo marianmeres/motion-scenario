@@ -1,0 +1,53 @@
+{
+	"name": "@marianmeres/motion-scenario",
+	"version": "0.1.0",
+	"exports": {
+		".": "./src/mod.ts",
+		"./cli": "./src/cli.ts"
+	},
+	"tasks": {
+		"test": "deno test -A",
+		"test:watch": "deno test -A --watch",
+		"check": "deno check src/ tests/ scripts/ examples/dom/main.ts",
+		"lint": "deno lint",
+		"cli": "deno run -A src/cli.ts",
+		"example:build": "deno run -A jsr:@marianmeres/deno-build --root examples/dom --entry main.ts --outdir examples/dom/dist",
+		"example:serve": "deno run --allow-net --allow-read jsr:@std/http/file-server examples --port 8787",
+		"example": "deno task example:build && deno task example:serve",
+		"npm:build": "deno run -A scripts/build-npm.ts",
+		"npm:publish": "deno run -A scripts/build-npm.ts && cd ./.npm-dist && npm publish --access=public",
+		"release": "deno run -A jsr:@marianmeres/release",
+		"publish": "deno publish && deno task npm:publish",
+		"rp": "deno task release -y && deno task publish",
+		"rpm": "deno task release minor -y && deno task publish"
+	},
+	"imports": {
+		"@marianmeres/npmbuild": "jsr:@marianmeres/npmbuild@^1.16.0",
+		"@marianmeres/vanilla": "jsr:@marianmeres/vanilla@^1.10.0",
+		"@std/assert": "jsr:@std/assert@^1.0.19",
+		"@std/cli": "jsr:@std/cli@^1.0.32",
+		"@std/fs": "jsr:@std/fs@^1.0.24",
+		"@std/path": "jsr:@std/path@^1.1.6"
+	},
+	"compilerOptions": {
+		"lib": ["deno.ns", "dom", "dom.iterable", "esnext"]
+	},
+	"publish": {
+		"exclude": [
+			".*",
+			"tests/**",
+			"scripts/**",
+			"tmp/**",
+			"examples/dom/**"
+		]
+	},
+	"minimumDependencyAge": {
+		"exclude": ["jsr:@marianmeres/*"]
+	},
+	"fmt": {
+		"useTabs": true,
+		"lineWidth": 90,
+		"indentWidth": 4,
+		"proseWrap": "preserve"
+	}
+}

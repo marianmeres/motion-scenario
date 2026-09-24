@@ -1,0 +1,31 @@
+{
+	"types": {
+		"FormCard": {
+			"description": "a form card with two fields",
+			"parts": ["name", "schedule", "button"],
+			"verbs": {
+				"types": {
+					"duration": 0.8,
+					"description": "types a ui string into the next field"
+				},
+				"submits": {
+					"duration": "pop",
+					"description": "presses the button, fields lock"
+				}
+			}
+		},
+		"Plant": { "description": "a potted plant" },
+		"Phone": { "description": "a phone frame", "parts": ["screen"] },
+		"Notification": { "description": "a notification banner inside the phone" },
+		"Logo": { "description": "the wordmark" }
+	},
+	"poses": ["aside", "stage", "center"],
+	"formats": {
+		"wide": { "budget": [10, 30], "charsPerLine": 36 },
+		"reel": { "budget": [10, 25], "charsPerLine": 22 }
+	},
+	"blacklist": {
+		"en": ["easy", "simply", "just", "seamless", "revolutionary"],
+		"sk": ["jednoducho", "ľahko"]
+	}
+}

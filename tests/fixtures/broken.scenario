@@ -1,0 +1,31 @@
+motion-scenario 1
+
+video broken
+  languages  en, sk
+  music      fast
+
+cast
+  card   FormCard
+  card   Phone
+  ghost  Thing on nobody
+
+ui label
+  en  Label
+  de  Etikett
+
+scene one ends full
+  beat a
+    en  Hello
+    card appears
+    card.knob wobbles gently
+    de  Hallo
+    hold 2
+  beat a
+    en  Again
+  beat b
+    card leaves
+scene two
+  beat c role hook
+    en  Late hook
+    sk  Neskorý hook
+	card appears

@@ -1,0 +1,325 @@
+/*
+ * The renderer's half of the contract: every vocabulary verb the scenario uses has a class or
+ * attribute here, and every named pose has a position. Durations arrive per direction in --dur.
+ */
+:root {
+	color-scheme: light dark;
+	--bg: #f5f4ef;
+	--ink: #1c1b18;
+	--muted: #5f5c55;
+	--card: #ffffff;
+	--accent: #2f7d4f;
+	--stage: #e6ede7;
+}
+@media (prefers-color-scheme: dark) {
+	:root {
+		--bg: #17181a;
+		--ink: #f1efe8;
+		--muted: #a4a198;
+		--card: #232528;
+		--stage: #1f2a23;
+	}
+}
+* {
+	box-sizing: border-box;
+}
+body {
+	margin: 0;
+	font: 16px/1.5 system-ui, -apple-system, sans-serif;
+	background: var(--bg);
+	color: var(--ink);
+}
+#app {
+	max-width: 1120px;
+	margin: 0 auto;
+	padding: 24px 16px;
+	display: grid;
+	gap: 16px;
+	grid-template-columns: 1fr;
+}
+@media (min-width: 900px) {
+	#app {
+		grid-template-columns: 3fr 2fr;
+	}
+	header {
+		grid-column: 1 / -1;
+	}
+}
+header h1 {
+	font-size: 1.25rem;
+	margin: 0 0 4px;
+}
+header p {
+	margin: 0 0 12px;
+	color: var(--muted);
+}
+code {
+	font-size: 0.95em;
+}
+.controls {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-wrap: wrap;
+}
+button {
+	font: inherit;
+	padding: 6px 14px;
+	border-radius: 999px;
+	border: 1px solid var(--muted);
+	background: var(--card);
+	color: var(--ink);
+	cursor: pointer;
+}
+button.active {
+	background: var(--accent);
+	color: #fff;
+	border-color: var(--accent);
+}
+.clock {
+	margin-left: auto;
+	font-variant-numeric: tabular-nums;
+	color: var(--muted);
+}
+.meta {
+	color: var(--muted);
+}
+
+/* ---- stage ------------------------------------------------------------- */
+.stage {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	background: var(--stage);
+	border-radius: 16px;
+	overflow: hidden;
+}
+.text {
+	position: absolute;
+	left: 6%;
+	right: 6%;
+	top: 8%;
+	z-index: 2;
+}
+.text h2 {
+	margin: 0;
+	font-size: clamp(1.2rem, 3.2vw, 2rem);
+	line-height: 1.15;
+}
+.text p {
+	margin: 4px 0 0;
+	color: var(--muted);
+}
+.text.in h2,
+.text.in p {
+	animation: text-in var(--textIn, 0.4s) ease-out both;
+}
+@keyframes text-in {
+	from {
+		opacity: 0;
+		translate: 0 8px;
+	}
+}
+
+/* ---- cast: hidden until `.on`; travel and scale live in --x/--y/--s ---- */
+.cast {
+	position: absolute;
+	left: 50%;
+	top: 58%;
+	translate: -50% -50%;
+	--x: 0px;
+	--y: 0px;
+	--s: 1;
+	transform: translate(var(--x), var(--y)) scale(var(--s));
+	opacity: 0;
+	transition:
+		opacity var(--dur, 0.5s) ease-out,
+		transform var(--dur, 0.5s) ease-out,
+		left var(--dur, 0.5s) ease-in-out,
+		filter var(--dur, 0.5s) ease-out;
+}
+.cast.on {
+	opacity: 1;
+}
+/* appears / enters from <side> / leaves / exits to <side>: an offset that only applies while
+   hidden, so the opacity transition also travels. Default: rise in, sink out. */
+.cast:not(.on) {
+	--y: 12px;
+}
+.cast:not(.on)[data-from="right"],
+.cast:not(.on)[data-to="right"] {
+	--x: 60px;
+	--y: 0px;
+}
+.cast:not(.on)[data-from="left"],
+.cast:not(.on)[data-to="left"] {
+	--x: -60px;
+	--y: 0px;
+}
+.cast:not(.on)[data-from="top"],
+.cast:not(.on)[data-to="top"] {
+	--y: -40px;
+}
+.cast:not(.on)[data-from="bottom"],
+.cast:not(.on)[data-to="bottom"] {
+	--y: 40px;
+}
+/* pops: overshoot */
+.cast.pop {
+	animation: pop var(--dur, 0.5s) cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes pop {
+	from {
+		transform: translate(var(--x), var(--y)) scale(0.4);
+	}
+}
+/* blinks once */
+.cast.blink {
+	animation: blink var(--dur, 0.3s) ease-in-out;
+}
+@keyframes blink {
+	50% {
+		opacity: 0.15;
+	}
+}
+/* grows / shrinks */
+.cast.big {
+	--s: 1.35;
+}
+.cast.small {
+	--s: 0.7;
+}
+/* becomes the focus: everything else recedes */
+.stage.has-focus .cast.on:not(.focus) {
+	opacity: 0.35;
+	filter: blur(1px);
+}
+/* poses: moves to <pose>, steps aside (= aside), takes the stage (= stage) */
+.cast[data-pose="center"] {
+	left: 50%;
+}
+.cast[data-pose="aside"] {
+	left: 26%;
+}
+.cast[data-pose="stage"] {
+	left: 50%;
+	--s: 1.15;
+}
+/* shows ui.<key>: children reveal */
+[data-ui] {
+	opacity: 0;
+	transition: opacity var(--dur, 0.5s) ease-out;
+}
+[data-ui].on {
+	opacity: 1;
+}
+
+/* ---- the cast members of this video ------------------------------------ */
+.card {
+	width: 34%;
+	min-height: 42%;
+	padding: 12px;
+	background: var(--card);
+	border-radius: 12px;
+	box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+.card .field {
+	height: 30px;
+	margin-top: 8px;
+	padding: 3px 8px;
+	border-radius: 6px;
+	background: var(--stage);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 0.95rem;
+	opacity: 0.6;
+	transition: opacity var(--dur, 0.8s) steps(12, end);
+}
+.card .field.on {
+	opacity: 1;
+	background: transparent;
+	border: 1px solid var(--muted);
+}
+.plant {
+	font-size: clamp(2rem, 6vw, 3.5rem);
+}
+.plant[data-i="0"] {
+	left: 32%;
+}
+.plant[data-i="1"] {
+	left: 50%;
+}
+.plant[data-i="2"] {
+	left: 68%;
+}
+.phone {
+	width: 20%;
+	aspect-ratio: 9 / 17;
+	left: 74%;
+	padding: 5px;
+	background: #111;
+	border-radius: 18px;
+}
+.phone .screen {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	background: var(--card);
+	border-radius: 13px;
+	overflow: hidden;
+}
+.reminder {
+	top: 22%;
+	width: 88%;
+	padding: 6px 8px;
+	background: var(--accent);
+	color: #fff;
+	border-radius: 8px;
+	font-size: 0.875rem;
+	line-height: 1.25;
+}
+.sprout {
+	top: 62%;
+	font-size: clamp(1.6rem, 4vw, 2.6rem);
+}
+.logo {
+	font-weight: 700;
+	font-size: clamp(1.6rem, 5vw, 2.6rem);
+	letter-spacing: -0.02em;
+	color: var(--accent);
+}
+
+/* ---- inspector --------------------------------------------------------- */
+.inspector ol {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 12px;
+	display: grid;
+	gap: 6px;
+}
+.inspector li {
+	padding: 8px 10px;
+	border-radius: 8px;
+	background: var(--card);
+	border-left: 3px solid transparent;
+}
+.inspector li.current {
+	border-left-color: var(--accent);
+}
+.inspector li .dirs {
+	color: var(--muted);
+	font-size: 0.95rem;
+}
+.inspector pre {
+	margin: 0;
+	padding: 10px;
+	border-radius: 8px;
+	background: var(--card);
+	color: var(--muted);
+	white-space: pre-wrap;
+	font-size: 0.875rem;
+	overflow: auto;
+}
+#app[data-state="error"] .stage {
+	display: none;
+}

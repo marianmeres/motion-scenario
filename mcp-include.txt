@@ -1,0 +1,6 @@
+Plain-text format (.scenario) for describing a motion-design video — beats, the words on screen in
+every language, and per-beat stage directions in a small vocabulary (appears, pops, leaves, moves
+to <pose>, then/and/just after, one by one) — plus a parser, a checker (structural errors, content
+warnings, new-motion and new-component reports), a timing resolver (reading time, music-grid
+snapping, moments) and a words extractor. Engine-free: it describes, it never animates. Consumers
+take the resolved JSON timeline and drive any renderer (DOM/CSS, canvas, video engines).
