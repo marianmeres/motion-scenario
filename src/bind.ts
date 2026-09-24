@@ -9,14 +9,18 @@
 import { CORE_VERBS, type MotionDef, type ResolvedConfig } from "./config.ts";
 import { type CastMember, castTypeOf, type Direction, type Scenario } from "./model.ts";
 
+/** Which vocabulary a phrase bound from: core, the project's verbs, or the subject's type. */
 export type BindSource = "core" | "project" | "type";
 
+/** A direction's verb phrase matched against the vocabulary. */
 export interface Bound {
 	/** The matched vocabulary phrase, or the bare verb when nothing matched. */
 	phrase: string;
 	/** Bare words left after the phrase: `ui.<key>` references, a cast name, a pose. */
 	object: string[];
+	/** The matched motion, `null` for a new (unbound) motion. */
 	motion: MotionDef | null;
+	/** Which vocabulary the match came from, `null` when unbound. */
 	source: BindSource | null;
 	/** Group members or objects the motion applies to (≥ 1). */
 	count: number;

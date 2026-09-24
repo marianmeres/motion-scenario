@@ -29,18 +29,25 @@ import type {
 } from "./model.ts";
 import { wordCount } from "./model.ts";
 
+/** One direction with its bound motion and absolute timing. */
 export interface ResolvedDirection {
 	/** Position within the beat, 0-based. */
 	index: number;
+	/** `then` or `and`, as parsed. */
 	relation: Relation;
+	/** A cast name. */
 	subject: string;
+	/** `<subject>.<part>` — an anchor the component type knows. */
 	part?: string;
 	/** The bound vocabulary phrase, or the bare verb when unbound. */
 	phrase: string;
 	/** Bare words after the phrase: `ui.<key>` references, a cast name, a pose. */
 	object: string[];
+	/** Keyword arguments, as parsed. */
 	args: Partial<Record<ArgKeyword, string[]>>;
+	/** Per-line adjustments, as parsed. */
 	modifiers: Modifier[];
+	/** `, just after` — offset from the direction above within the moment. */
 	justAfter: boolean;
 	/** Effective group behaviour after defaults (`shows a, b` staggers by default). */
 	group?: GroupTail;
@@ -52,30 +59,48 @@ export interface ResolvedDirection {
 	start: number;
 	/** Seconds after the moment's start. */
 	offset: number;
+	/** Seconds, after modifiers and any `one by one` stagger. */
 	duration: number;
+	/** Absolute seconds: `start + duration`. */
 	end: number;
+	/** 1-based source line. */
 	line: number;
+	/** The line as written, trimmed. */
 	raw: string;
 }
 
+/** A `then` line (or a beat's first line) and the `and` lines that join it. */
 export interface ResolvedMoment {
+	/** Position within the beat, 0-based. */
 	index: number;
+	/** Absolute seconds: the previous moment's end, or the beat's start. */
 	start: number;
+	/** Absolute seconds: the latest end of its directions. */
 	end: number;
+	/** Seconds: `end - start`. */
 	duration: number;
+	/** The moment's directions, in file order. */
 	directions: ResolvedDirection[];
 }
 
+/** What decided a beat's length: reading time, the last moment, or an explicit `hold`. */
 export type BoundedBy = "words" | "motion" | "hold";
 
+/** One beat of one language's timeline. */
 export interface ResolvedBeat {
+	/** The name of the scene the beat belongs to. */
 	scene: string;
+	/** The beat's id. */
 	id: string;
+	/** The beat's `role`, when declared. */
 	role?: string;
 	/** Position in the whole video, 0-based. */
 	index: number;
+	/** Absolute seconds: the previous beat's end, or 0. */
 	start: number;
+	/** Absolute seconds: the later of `readUntil` and `motionEnd`, snapped up to the music grid. */
 	end: number;
+	/** Seconds: `end - start`. */
 	duration: number;
 	/** When the headline is readable (`start` for a hook beat). */
 	textReadableAt: number;
@@ -85,33 +110,51 @@ export interface ResolvedBeat {
 	motionEnd: number;
 	/** What decided the beat's length. */
 	boundedBy: BoundedBy;
+	/** The beat's words in this language, when it has any. */
 	text?: BeatText;
+	/** Word count of headline + sub, the reading-time input. */
 	words: number;
+	/** The beat's `hold`, as parsed. */
 	hold?: Hold;
 	/** The hold in seconds, when there is one. */
 	holdSeconds?: number;
+	/** The beat's directions grouped into timed moments. */
 	moments: ResolvedMoment[];
+	/** Prose lines kept for the implementer. */
 	notes: string[];
+	/** 1-based source line of the `beat` header. */
 	line: number;
 }
 
+/** Every beat of the video, timed for one language. */
 export interface Timeline {
+	/** The language this timeline is for. */
 	language: string;
 	/** Running time in seconds. */
 	total: number;
+	/** Every beat across all scenes, in file order. */
 	beats: ResolvedBeat[];
 }
 
+/** The result of `resolve`: the timing estimate an implementer schedules from. */
 export interface ResolveResult {
+	/** The video's slug. */
 	slug: string;
+	/** Every language the video renders. */
 	languages: string[];
+	/** The reference language (the first declared). */
 	reference: string;
+	/** Output formats, as declared. */
 	formats: string[];
+	/** The music grid, as declared. */
 	music: Music;
 	/** Grid units in seconds, `null` when silent. */
 	grid: { beat: number | null; bar: number | null };
+	/** The preset the timing used, with project overrides applied. */
 	preset: Preset;
+	/** The reading-time constants the timing used, with project overrides applied. */
 	reading: ReadingTime;
+	/** Language → timeline. */
 	timelines: Record<string, Timeline>;
 }
 

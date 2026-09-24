@@ -29,6 +29,7 @@ import {
 	type Video,
 } from "./model.ts";
 
+/** The result of `parse`: a scenario, or the structural errors that prevented one. */
 export interface ParseResult {
 	/** The scenario when there were no errors, otherwise `null`. */
 	scenario: Scenario | null;
@@ -629,7 +630,8 @@ export function parseHold(tokens: string[]): Hold | null {
 	return { value, unit };
 }
 
-type DirectionTail = Pick<
+/** The part of a `Direction` that follows the subject, as `parseDirectionTail` returns it. */
+export type DirectionTail = Pick<
 	Direction,
 	"verb" | "words" | "args" | "justAfter" | "group" | "modifiers"
 >;

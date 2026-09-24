@@ -41,6 +41,10 @@ Options:
 Exit codes: 0 ok · 1 errors (or warnings with --strict) · 2 usage or I/O error
 `;
 
+/**
+ * Load a `ProjectConfig` from a `.json` file, or from a `.ts`/`.js` module's default (or
+ * `config`) export. Throws when the module has neither.
+ */
 export async function loadConfig(path: string): Promise<ProjectConfig> {
 	const abs = resolvePath(path);
 	if (abs.endsWith(".json")) return JSON.parse(await Deno.readTextFile(abs));
@@ -52,6 +56,7 @@ export async function loadConfig(path: string): Promise<ProjectConfig> {
 	return cfg as ProjectConfig;
 }
 
+/** Run the CLI with `argv` (without the executable and script) and return the exit code. */
 export async function main(argv: string[]): Promise<number> {
 	const args = parseArgs(argv, {
 		boolean: ["strict", "json", "help"],

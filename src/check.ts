@@ -10,28 +10,39 @@ import { type ProjectConfig, resolveConfig } from "./config.ts";
 import { type Beat, type Issue, type Scenario, sortIssues } from "./model.ts";
 import { resolve } from "./resolve.ts";
 
+/** A direction whose verb phrase the vocabulary does not know yet (`W_NEW_MOTION`). */
 export interface NewMotion {
 	/** The verb phrase as bound (the bare verb plus any bare words). */
 	phrase: string;
+	/** The cast name the direction addresses. */
 	subject: string;
 	/** The subject's component type, when known. */
 	type?: string;
+	/** The direction line as written, trimmed. */
 	raw: string;
+	/** 1-based source line. */
 	line: number;
 }
 
+/** A cast member whose component does not exist yet in the project's registry. */
 export interface NewComponent {
+	/** The cast name. */
 	name: string;
 	/** `new` for `new:` members; the declared type when it is not in the registry. */
 	type: string;
+	/** The text after `new:`, when declared that way. */
 	description?: string;
+	/** 1-based source line. */
 	line: number;
 }
 
+/** The result of `check`. */
 export interface CheckResult {
 	/** No errors. Warnings do not affect it. */
 	ok: boolean;
+	/** Findings that stop every tool, sorted by line. */
 	errors: Issue[];
+	/** Findings that are reported while tools continue, sorted by line. */
 	warnings: Issue[];
 	/** Every unbound verb, one entry per line. */
 	newMotions: NewMotion[];

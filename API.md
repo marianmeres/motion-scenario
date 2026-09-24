@@ -182,8 +182,8 @@ Round to milliseconds.
 
 ### `parseDirectionTail(after)`
 
-Everything after the subject (`"enters from the right, just after, slowly"`) → `{ verb, words,
-args, justAfter, group, modifiers }` | `null` when there is no verb.
+Everything after the subject (`"enters from the right, just after, slowly"`) → `DirectionTail`
+(`{ verb, words, args, justAfter, group, modifiers }`) | `null` when there is no verb.
 
 ---
 

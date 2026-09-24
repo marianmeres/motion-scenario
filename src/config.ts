@@ -62,9 +62,11 @@ export interface ComponentType {
 	parts?: string[];
 	/** Verbs only this type implements (`types`, `submits`, …). */
 	verbs?: Record<string, MotionDef>;
+	/** Shown in reports and boards. */
 	description?: string;
 }
 
+/** Per-format settings, keyed by the format names the `video` block declares. */
 export interface FormatConfig {
 	/** Running-time budget in seconds, `[min, max]`. */
 	budget?: [number, number];
@@ -74,6 +76,7 @@ export interface FormatConfig {
 	maxLines?: number;
 }
 
+/** Reading-time constants: `max(min, base + perWord × words)` seconds. */
 export interface ReadingTime {
 	/** Floor, seconds. */
 	min: number;
@@ -93,10 +96,13 @@ export interface ProjectConfig {
 	poses?: string[];
 	/** Known scene transitions. Default: cut, push, slide, crossfade. */
 	transitions?: string[];
+	/** Overrides for `DEFAULT_PRESET`. */
 	preset?: Partial<Preset>;
+	/** Overrides for `DEFAULT_READING`. */
 	reading?: Partial<ReadingTime>;
 	/** Per-format budgets and headline sizes, keyed by the names the `video` block declares. */
 	formats?: Record<string, FormatConfig>;
+	/** Headline limits. `maxWords` defaults to `DEFAULT_MAX_HEADLINE_WORDS`. */
 	headline?: { maxWords?: number };
 	/** Words that must not appear in text, per language. */
 	blacklist?: Record<string, string[]>;
@@ -104,17 +110,27 @@ export interface ProjectConfig {
 
 /** `ProjectConfig` with every default filled in. */
 export interface ResolvedConfig {
+	/** Component types and their parts and component verbs (`{}` when none). */
 	types: Record<string, ComponentType>;
+	/** `CORE_VERBS` merged with the project's verbs; project verbs win. */
 	verbs: Record<string, MotionDef>;
+	/** Known pose names. */
 	poses: string[];
+	/** Known scene transitions. */
 	transitions: string[];
+	/** `DEFAULT_PRESET` with the project's overrides applied. */
 	preset: Preset;
+	/** `DEFAULT_READING` with the project's overrides applied. */
 	reading: ReadingTime;
+	/** Per-format budgets and headline sizes. */
 	formats: Record<string, FormatConfig>;
+	/** Headline limits. */
 	headline: { maxWords: number };
+	/** Words that must not appear in text, per language. */
 	blacklist: Record<string, string[]>;
 }
 
+/** The preset used when a project overrides nothing. Seconds, except the two multipliers. */
 export const DEFAULT_PRESET: Preset = {
 	textIn: 0.4,
 	enter: 0.5,
@@ -130,10 +146,13 @@ export const DEFAULT_PRESET: Preset = {
 	quickly: 0.6,
 };
 
+/** Reading time when a project overrides nothing: `max(1.8, 0.8 + 0.3 × words)` seconds. */
 export const DEFAULT_READING: ReadingTime = { min: 1.8, base: 0.8, perWord: 0.3 };
 
+/** Scene transitions known when a project declares none. */
 export const DEFAULT_TRANSITIONS: string[] = ["cut", "push", "slide", "crossfade"];
 
+/** Headline word count above which the checker warns, unless the project sets its own. */
 export const DEFAULT_MAX_HEADLINE_WORDS = 7;
 
 /**

@@ -7,6 +7,7 @@
 
 import type { BeatText, Scenario } from "./model.ts";
 
+/** Every translated string in one language. */
 export interface LanguageWords {
 	/** Beat id → headline (+ sub). Beats without text are omitted. */
 	beats: Record<string, BeatText>;
@@ -17,6 +18,7 @@ export interface LanguageWords {
 /** Language → words. Key order follows the file. */
 export type Words = Record<string, LanguageWords>;
 
+/** Extract every translated string (beat text and `ui` strings), per declared language. */
 export function words(scenario: Scenario): Words {
 	const out: Words = {};
 	for (const lang of scenario.video.languages) {

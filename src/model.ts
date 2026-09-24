@@ -12,25 +12,31 @@ export const FORMAT_VERSION = 1;
 export interface Scenario {
 	/** Format version from the first line (`motion-scenario 1`). */
 	version: number;
+	/** The `video` block: slug, formats, languages, music, style and free notes. */
 	video: Video;
+	/** The `cast` block: every object a direction may address, in file order. */
 	cast: CastMember[];
 	/** `ui` strings: key → language → text. Translated words inside the stylised UI. */
 	ui: UiStrings;
+	/** Every scene, in file order. */
 	scenes: Scene[];
 }
 
 /** The `video` block. */
 export interface Video {
+	/** The name after `video` on the block's first line. */
 	slug: string;
 	/** Output formats the project renders (free names, e.g. `wide`, `reel`). May be empty. */
 	formats: string[];
 	/** Every language the video renders. The first one is the reference language. */
 	languages: string[];
+	/** The music grid holds snap to, or `silent`. */
 	music: Music;
 	/** Name of the project's style preset, if declared. Not interpreted by this package. */
 	style?: string;
 	/** Free keys (`audience`, `status`, `remember`, …), in file order. Never interpreted. */
 	notes: Record<string, string>;
+	/** 1-based source line of the `video` block. */
 	line: number;
 }
 
@@ -41,6 +47,7 @@ export type Music =
 
 /** One line of the `cast` block. */
 export interface CastMember {
+	/** The name directions address this member by. */
 	name: string;
 	/** Component type from the project registry. `"new"` when `isNew`, `""` for a group. */
 	type: string;
@@ -54,6 +61,7 @@ export interface CastMember {
 	group?: { count: number; member: string };
 	/** Remaining tokens after the type (and host), e.g. a URL or a `ui.<key>` reference. */
 	args: string[];
+	/** 1-based source line. */
 	line: number;
 }
 
@@ -62,17 +70,21 @@ export type UiStrings = Record<string, Record<string, string>>;
 
 /** A named group of beats with an ending state and an optional entry transition. */
 export interface Scene {
+	/** The name after `scene`. */
 	name: string;
 	/** `ends clean` (empty background, the default) or `ends full` (the next scene pushes it away). */
 	ends: "full" | "clean";
 	/** `transition <kind>` — how this scene enters. */
 	transition?: string;
+	/** The scene's beats, in file order. */
 	beats: Beat[];
+	/** 1-based source line of the `scene` header. */
 	line: number;
 }
 
 /** One unit of meaning: one headline, one focal point, one duration. */
 export interface Beat {
+	/** The beat's name, unique across the whole file. */
 	id: string;
 	/** `role <role>` — `hook`, `end`, or any documentary tag. */
 	role?: string;
@@ -80,22 +92,31 @@ export interface Beat {
 	text: Record<string, BeatText>;
 	/** `hold <n> s|beats|bars` — replaces reading time as the beat's duration source. */
 	hold?: Hold;
+	/** Stage directions, in file order. */
 	directions: Direction[];
 	/** Prose lines kept for the implementer. Never interpreted. */
 	notes: string[];
+	/** 1-based source line of the `beat` header. */
 	line: number;
 }
 
+/** A beat's words in one language. Both lines count toward reading time. */
 export interface BeatText {
+	/** The on-screen headline. */
 	headline: string;
+	/** The optional second line (`<lang>.sub`). */
 	sub?: string;
 }
 
+/** A beat's explicit duration: `hold <value> <unit>`. */
 export interface Hold {
+	/** A non-negative number of `unit`s. */
 	value: number;
+	/** Seconds, or music-grid beats or bars. */
 	unit: HoldUnit;
 }
 
+/** Units a `hold` may be stated in: seconds, or music-grid beats or bars. */
 export type HoldUnit = "s" | "beats" | "bars";
 
 /** `then` starts a new moment after the previous one completes; `and` joins the previous moment. */
@@ -104,6 +125,7 @@ export type Relation = "then" | "and";
 /** Keywords that introduce a direction argument. */
 export type ArgKeyword = "from" | "to" | "on" | "with";
 
+/** Every `ArgKeyword`, as a runtime list. */
 export const ARG_KEYWORDS: readonly ArgKeyword[] = ["from", "to", "on", "with"];
 
 /** Tail of a direction on a group or on several objects. */
@@ -112,6 +134,7 @@ export type GroupTail = "oneByOne" | "together";
 /** The only per-line adjustments the language allows. Everything else is a style preset. */
 export type Modifier = "slowly" | "quickly" | "with overshoot" | "softly";
 
+/** Every `Modifier`, as a runtime list. */
 export const MODIFIERS: readonly Modifier[] = [
 	"slowly",
 	"quickly",
@@ -130,6 +153,7 @@ export const MODIFIERS: readonly Modifier[] = [
  * `card shows ui.name, ui.note` → `{ verb: "shows", words: ["ui.name", "ui.note"] }`
  */
 export interface Direction {
+	/** `then` (the default when omitted) or `and`. */
 	relation: Relation;
 	/** A cast name. */
 	subject: string;
@@ -149,19 +173,24 @@ export interface Direction {
 	justAfter: boolean;
 	/** `, one by one` | `, together`. */
 	group?: GroupTail;
+	/** Trailing per-line adjustments, in the order written. */
 	modifiers: Modifier[];
+	/** 1-based source line. */
 	line: number;
 	/** The line as written, trimmed. */
 	raw: string;
 }
 
+/** An `error` stops every tool; a `warning` is reported and tools continue. */
 export type Severity = "error" | "warning";
 
 /** A check or parse finding. Errors stop every tool; warnings are printed and tools continue. */
 export interface Issue {
+	/** Whether the finding stops the tools. */
 	severity: Severity;
 	/** Stable machine code, e.g. `E_DUPLICATE_BEAT`, `W_NEW_MOTION`. */
 	code: string;
+	/** Human-readable description of the finding. */
 	message: string;
 	/** 1-based line in the source file, when the finding has one. */
 	line?: number;
