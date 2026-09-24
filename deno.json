@@ -1,6 +1,6 @@
 {
 	"name": "@marianmeres/motion-scenario",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"exports": {
 		".": "./src/mod.ts",
 		"./cli": "./src/cli.ts"
@@ -30,7 +30,12 @@
 		"@std/path": "jsr:@std/path@^1.1.6"
 	},
 	"compilerOptions": {
-		"lib": ["deno.ns", "dom", "dom.iterable", "esnext"]
+		"lib": [
+			"deno.ns",
+			"dom",
+			"dom.iterable",
+			"esnext"
+		]
 	},
 	"publish": {
 		"exclude": [
@@ -42,7 +47,9 @@
 		]
 	},
 	"minimumDependencyAge": {
-		"exclude": ["jsr:@marianmeres/*"]
+		"exclude": [
+			"jsr:@marianmeres/*"
+		]
 	},
 	"fmt": {
 		"useTabs": true,
